@@ -1,0 +1,13 @@
+{
+  "name": "sada",
+  "private": true,
+  "version": "0.1.0",
+  "description": "صدى — غرف صوتية وفيديو ومكالمات فورية فوق Metered",
+  "scripts": {
+    "install:all": "npm i && npm --prefix server i && npm --prefix client i",
+    "dev": "concurrently -n server,client -c magenta,cyan \"npm --prefix server run dev\" \"npm --prefix client run dev\"",
+    "build": "npm --prefix client run build",
+    "start": "npm --prefix server start"
+  },
+  "devDependencies": { "concurrently": "^9.0.0" }
+}

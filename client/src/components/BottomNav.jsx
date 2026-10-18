@@ -1,0 +1,30 @@
+import Icon from './Icon.jsx';
+
+const ITEMS = [
+  { id: 'home', label: 'الرئيسية', icon: 'home' },
+  { id: 'rooms', label: 'الغرف', icon: 'users' },
+  { id: 'talk', label: 'تحدّث', icon: 'mic', fab: true },
+  { id: 'notes', label: 'الإشعارات', icon: 'bell' },
+  { id: 'me', label: 'حسابي', icon: 'user' },
+];
+
+export default function BottomNav({ tab, onTab, onTalk }) {
+  return (
+    <nav className="bottom-nav" aria-label="التنقل الرئيسي">
+      {ITEMS.map((it) =>
+        it.fab ? (
+          <button key={it.id} className="nav-fab" onClick={onTalk} aria-label="ابدأ غرفة جديدة">
+            <span className="fab-disc"><Icon name="mic" size={30} /></span>
+            <span className="nav-label">{it.label}</span>
+          </button>
+        ) : (
+          <button key={it.id} className={`nav-item ${tab === it.id ? 'on' : ''}`} onClick={() => onTab(it.id)}
+            aria-current={tab === it.id ? 'page' : undefined}>
+            <Icon name={it.icon} size={24} />
+            <span className="nav-label">{it.label}</span>
+          </button>
+        ),
+      )}
+    </nav>
+  );
+}
