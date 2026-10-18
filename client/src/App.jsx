@@ -20,6 +20,8 @@ export default function App() {
   const [msg, setMsg] = useState(null);
   const [net, setNet] = useState({ online: [], incoming: null });
   const roomRef = useRef(null);
+  const live = useRef({});
+  live.current = { view, sheet, tab };
 
   const toast = useCallback((m) => setMsg(m), []);
   const clearToast = useCallback(() => setMsg(null), []);
@@ -30,7 +32,6 @@ export default function App() {
     setProfile(p);
   };
 
-  // نبضة حضور كل ٤ ثوانٍ: تُعلِم الخادم بأنك متصل وفي أي غرفة، وتجلب المتاحين والمكالمات الواردة
   useEffect(() => { roomRef.current = view.join?.room?.roomName ?? null; }, [view]);
   useEffect(() => {
     if (!profile) return undefined;
@@ -46,6 +47,17 @@ export default function App() {
     return () => { stop = true; clearInterval(t); };
   }, [profile, status]);
 
+  useEffect(() => {
+    window.__sadaBack = () => {
+      const s = live.current;
+      if (s.view.name !== 'home') { setView({ name: 'home' }); return true; }
+      if (s.sheet) { setSheet(false); return true; }
+      if (s.tab !== 'home') { setTab('home'); return true; }
+      return false;
+    };
+    return () => { delete window.__sadaBack; };
+  }, []);
+
   const enter = useCallback(async (roomName) => {
     try {
       const j = await api.joinRoom(roomName, { id: profile.id, name: profile.name });
@@ -53,7 +65,6 @@ export default function App() {
     } catch (e) { toast(errText(e)); }
   }, [profile, toast]);
 
-  // رابط دعوة: /r/<roomName>
   useEffect(() => {
     const mm = location.pathname.match(/^\/r\/([\w-]+)$/);
     if (profile && mm) { history.replaceState(null, '', '/'); enter(mm[1]); }
