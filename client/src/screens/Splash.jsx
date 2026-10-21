@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import Avatar from '../components/Avatar.jsx';
 import Icon from '../components/Icon.jsx';
 
@@ -8,11 +7,7 @@ const ORBIT = [
   { n: 'ريم', x: 9, y: 77 }, { n: 'يوسف', x: 50, y: 88, halo: true }, { n: 'فهد', x: 91, y: 77 },
 ];
 
-export default function Splash({ onDone }) {
-  const [step, setStep] = useState('intro');
-  const [name, setName] = useState('');
-  const ok = name.trim().length > 0;
-
+export default function Splash({ onStart }) {
   return (
     <main className="splash">
       <div className="splash-stage" aria-hidden="true">
@@ -29,18 +24,10 @@ export default function Splash({ onDone }) {
       <h2 className="splash-title">صوتك أجمل<br />من الرسائل</h2>
       <p className="splash-sub">مكالمات صوتية وفيديو، وغرف مفتوحة تجمعك بمن يشبهك.</p>
 
-      {step === 'intro' ? (
-        <button className="btn btn-night" onClick={() => setStep('name')}>
-          ابدأ بالصوت <Icon name="mic" size={22} />
-        </button>
-      ) : (
-        <form className="splash-form" onSubmit={(e) => { e.preventDefault(); if (ok) onDone(name.trim()); }}>
-          <label htmlFor="nm" className="sr">اسمك</label>
-          <input id="nm" className="field" autoFocus maxLength={40} placeholder="بماذا نناديك؟"
-            value={name} onChange={(e) => setName(e.target.value)} />
-          <button className="btn btn-night" disabled={!ok}>ادخل</button>
-        </form>
-      )}
+      <button className="btn btn-night" onClick={() => onStart('register')}>
+        ابدأ بالصوت <Icon name="mic" size={22} />
+      </button>
+      <button className="btn-link" onClick={() => onStart('login')}>لدي حساب بالفعل</button>
       <p className="legal">بمتابعتك توافق على الشروط وسياسة الخصوصية</p>
     </main>
   );

@@ -274,3 +274,43 @@ html[dir="rtl"] .react-pop { translate: 50% 0; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* ───────── حسابات وأصدقاء (الإصدار ٢) ───────── */
+.btn-link { display: block; margin: 14px auto 0; font-weight: 600; color: var(--indigo); padding: 8px 14px; border-radius: 12px; }
+.btn-link.inline { display: inline; margin: 0; padding: 0; text-decoration: underline; }
+.btn-out { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 52px; margin-top: 18px; border-radius: 999px; background: #fff; color: var(--coral); font-weight: 600; }
+.confirm-box { margin-top: 18px; padding: 18px; border-radius: 24px; background: #fff; text-align: center; }
+.confirm-box p { margin-bottom: 10px; font-weight: 600; }
+.confirm-box .btn.slim { margin: 0 auto; }
+.uname { color: var(--ink-soft); font-weight: 500; }
+
+.auth { height: 100dvh; overflow-y: auto; padding: max(env(safe-area-inset-top), 16px) 24px calc(env(safe-area-inset-bottom) + 24px); display: flex; flex-direction: column; }
+.auth-title { font-size: 2rem; font-weight: 700; margin-top: 18px; }
+.auth-sub { color: var(--ink-soft); margin: 8px 0 20px; line-height: 1.7; }
+.seg.two { grid-template-columns: repeat(2, 1fr); margin-bottom: 4px; }
+.field.ltr { direction: ltr; text-align: left; }
+.field-wrap .eye { position: absolute; inset-inline-end: 14px; top: 50%; translate: 0 -50%; color: var(--ink-soft); width: 40px; height: 40px; display: grid; place-items: center; }
+.field-wrap:has(.eye) .field { padding-inline-end: 56px; }
+.hint-s { font-size: .8rem; color: var(--ink-soft); margin-top: 6px; }
+.hint-s.bad { color: var(--coral); }
+.err { margin-top: 16px; padding: 12px 14px; border-radius: 14px; background: #FFE3E8; color: #B3203F; font-size: .9rem; line-height: 1.6; }
+.warn { margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: #FFF3D6; color: #7A5600; font-size: .8rem; line-height: 1.7; }
+.auth-submit { margin-top: 22px; }
+
+.nav-item { position: relative; }
+.nav-badge { position: absolute; top: -6px; inset-inline-start: calc(50% + 4px); min-width: 20px; height: 20px; padding: 0 6px; border-radius: 10px; background: var(--coral); color: #fff; font-size: .7rem; font-weight: 700; display: grid; place-items: center; box-shadow: 0 0 0 3px var(--night); }
+
+.add-friend { display: flex; gap: 10px; align-items: center; margin-bottom: 20px; }
+.add-friend .field { flex: 1; min-width: 0; height: 52px; }
+.add-friend .btn.slim { margin: 0; height: 52px; flex: none; padding: 0 18px; }
+.frow { padding: 12px; }
+.fav { position: relative; flex: none; }
+.pdot { position: absolute; inset-inline-end: -2px; bottom: -2px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid #fff; background: #B9B5D3; }
+.pdot.available { background: #2FBF8F; } .pdot.room { background: var(--sky); } .pdot.busy { background: var(--coral); }
+.icon-btn.sun { background: var(--sun); color: var(--ink); }
+.icon-btn:disabled { opacity: .35; }
+.mini.danger { background: var(--coral); color: #fff; }
+.row .mini { background: var(--paper-2); color: var(--ink); }
+.row .mini.danger { background: var(--coral); color: #fff; }
+.confirm { display: inline-flex; gap: 6px; }
+.row small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

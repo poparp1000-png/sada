@@ -5,6 +5,8 @@ import { useLongPress } from '../lib/useLongPress.js';
 import Avatar from '../components/Avatar.jsx';
 import BottomNav from '../components/BottomNav.jsx';
 import Icon from '../components/Icon.jsx';
+import Friends from './Friends.jsx';
+import Requests from './Requests.jsx';
 
 const FILTERS = [
   { id: 'all', label: 'الكل' },
@@ -25,8 +27,8 @@ function Bubbles({ rooms, onEnter }) {
   return (
     <div className="bubbles-wrap">
       <div className="bubbles">
-        {rooms.slice(0, SIZES.length).map((r, i) => {
-          const size = SIZES[i];
+        {rooms.slice(0, 14).map((r, i) => {
+          const size = SIZES[Math.min(i, SIZES.length - 1)];
           const pal = r.kind === 'audio' ? AUDIO_COLORS : VIDEO_COLORS;
           const color = pal[used[r.kind]++ % pal.length];
           const count = r.kind === 'audio' ? nListeners(r.count) : nPeople(r.count);
@@ -47,7 +49,7 @@ function Bubbles({ rooms, onEnter }) {
   );
 }
 
-function Friend({ f, onCall, toast }) {
+function FriendChip({ f, onCall, toast }) {
   const lp = useLongPress(() => onCall(f));
   return (
     <button className="friend" {...lp.handlers} onClick={() => { if (!lp.wasLong()) toast(`اضغط مطولاً على ${f.name} للاتصال به.`); }}>
@@ -57,31 +59,57 @@ function Friend({ f, onCall, toast }) {
   );
 }
 
-function RoomRow({ r, onEnter }) {
+function Me({ profile, onRename, onLogout, toast }) {
+  const [draft, setDraft] = useState(profile.name);
+  const [confirm, setConfirm] = useState(false);
+  const dirty = draft.trim() && draft.trim() !== profile.name;
   return (
-    <button className="row" onClick={() => onEnter(r.roomName)}>
-      <span className={`row-ic ${r.kind === 'audio' ? 'lilac' : 'sun'}`}><Icon name={r.kind === 'audio' ? 'mic' : 'video'} size={22} /></span>
-      <span className="row-main"><strong>{r.title}</strong><small>{r.kind === 'audio' ? nListeners(r.count) : nPeople(r.count)}</small></span>
-      <Icon name="left" size={20} />
-    </button>
+    <>
+      <h1 className="big pad">حسابي</h1>
+      <div className="me-card">
+        <Avatar name={profile.name} size={96} />
+        <p className="uname" dir="ltr">@{profile.username}</p>
+        <form onSubmit={(e) => { e.preventDefault(); if (dirty) onRename(draft.trim()); }}>
+          <label className="lbl" htmlFor="myname">الاسم الظاهر للآخرين</label>
+          <input id="myname" className="field" maxLength={40} value={draft} onChange={(e) => setDraft(e.target.value)} />
+          <button className="btn btn-night slim" disabled={!dirty}>حفظ الاسم</button>
+        </form>
+      </div>
+      {confirm ? (
+        <div className="confirm-box">
+          <p>هل تريد تسجيل الخروج؟</p>
+          <div>
+            <button className="btn btn-night slim" onClick={onLogout}>نعم، اخرج</button>
+            <button className="btn-link" onClick={() => setConfirm(false)}>إلغاء</button>
+          </div>
+        </div>
+      ) : (
+        <button className="btn-out" onClick={() => setConfirm(true)}><Icon name="logout" size={20} /> تسجيل الخروج</button>
+      )}
+    </>
   );
 }
 
-export default function Home({ profile, status, setStatus, tab, setTab, net, onEnter, onNew, onCall, onAccept, onDecline, onRename, toast }) {
+export default function Home({
+  profile, status, setStatus, tab, setTab, net, onEnter, onNew, onCall, onAccept, onDecline,
+  onRename, onLogout, onRequestsChanged, toast,
+}) {
   const [filter, setFilter] = useState('all');
   const [rooms, setRooms] = useState([]);
   const [configured, setConfigured] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [offline, setOffline] = useState(false);
   const [menu, setMenu] = useState(false);
-  const [nameDraft, setNameDraft] = useState(profile.name);
 
   useEffect(() => {
     let stop = false;
     const load = async () => {
       try {
         const d = await api.rooms();
-        if (!stop) { setRooms(d.rooms); setConfigured(d.configured); setLoading(false); }
-      } catch { if (!stop) setLoading(false); }
+        if (!stop) { setRooms(d.rooms); setConfigured(d.configured); setOffline(false); setLoading(false); }
+      } catch (e) {
+        if (!stop) { setOffline(e.status === 0); setLoading(false); }
+      }
     };
     load();
     const t = setInterval(load, 6000);
@@ -93,11 +121,8 @@ export default function Home({ profile, status, setStatus, tab, setTab, net, onE
   return (
     <>
       <div className="scroll home">
-        {!configured && (
-          <div className="banner" role="alert">
-            لم تُضبط مفاتيح Metered بعد، لذلك لن تعمل الغرف والمكالمات. أضفها في <code>server/.env</code>.
-          </div>
-        )}
+        {offline && <div className="banner" role="alert">لا يوجد اتصال بالخادم. سنحاول مجدداً تلقائياً.</div>}
+        {!configured && <div className="banner" role="alert">لم تُضبط مفاتيح Metered في الخادم بعد، لذلك لن تعمل الغرف والمكالمات.</div>}
 
         {tab === 'home' && (
           <>
@@ -145,45 +170,20 @@ export default function Home({ profile, status, setStatus, tab, setTab, net, onE
             </div>
 
             <section className="friends">
-              <div className="friends-head"><h2>متاحون للكلام الآن</h2><small>اضغط مطولاً لمكالمة سريعة</small></div>
+              <div className="friends-head"><h2>أصدقاء متاحون للكلام</h2><small>اضغط مطولاً لمكالمة سريعة</small></div>
               {net.online.length === 0
-                ? <p className="muted">لا أحد متاح الآن. سيظهر هنا من يفتح التطبيق.</p>
-                : <div className="friends-row">{net.online.map((f) => <Friend key={f.id} f={f} onCall={onCall} toast={toast} />)}</div>}
+                ? <p className="muted">لا أحد من أصدقائك متاح الآن. <button className="btn-link inline" onClick={() => setTab('friends')}>أضف أصدقاء</button></p>
+                : <div className="friends-row">{net.online.map((f) => <FriendChip key={f.id} f={f} onCall={onCall} toast={toast} />)}</div>}
             </section>
           </>
         )}
 
-        {tab === 'rooms' && (
-          <>
-            <h1 className="big pad">كل الغرف</h1>
-            {rooms.length === 0 ? <div className="empty"><p>لا توجد غرف الآن.</p><button className="btn btn-night slim" onClick={onNew}>ابدأ غرفة</button></div>
-              : <div className="rows">{rooms.map((r) => <RoomRow key={r.roomName} r={r} onEnter={onEnter} />)}</div>}
-          </>
-        )}
-
-        {tab === 'notes' && (
-          <>
-            <h1 className="big pad">الإشعارات</h1>
-            <div className="empty"><p>لا إشعارات جديدة. ستصلك هنا دعوات الغرف والمكالمات الفائتة.</p></div>
-          </>
-        )}
-
-        {tab === 'me' && (
-          <>
-            <h1 className="big pad">حسابي</h1>
-            <div className="me-card">
-              <Avatar name={profile.name} size={96} />
-              <form onSubmit={(e) => { e.preventDefault(); if (nameDraft.trim()) { onRename(nameDraft.trim()); toast('تم حفظ الاسم.'); } }}>
-                <label className="lbl" htmlFor="myname">الاسم الظاهر للآخرين</label>
-                <input id="myname" className="field" maxLength={40} value={nameDraft} onChange={(e) => setNameDraft(e.target.value)} />
-                <button className="btn btn-night slim" disabled={!nameDraft.trim() || nameDraft.trim() === profile.name}>حفظ الاسم</button>
-              </form>
-            </div>
-          </>
-        )}
+        {tab === 'friends' && <Friends onCall={onCall} toast={toast} onChanged={onRequestsChanged} />}
+        {tab === 'notes' && <Requests toast={toast} onChanged={onRequestsChanged} />}
+        {tab === 'me' && <Me profile={profile} onRename={onRename} onLogout={onLogout} toast={toast} />}
       </div>
 
-      <BottomNav tab={tab} onTab={setTab} onTalk={onNew} />
+      <BottomNav tab={tab} onTab={setTab} onTalk={onNew} badge={net.pending || 0} />
 
       {net.incoming && (
         <div className="call-in" role="alertdialog" aria-label="مكالمة واردة">

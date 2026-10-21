@@ -34,6 +34,13 @@ export default function DirectCall({ join, me, onLeave, toast }) {
     else if (hadPeer.current) { toast(`${peerName} أنهى المكالمة.`); onLeave(); }
   }, [!!peer]); // eslint-disable-line
 
+  // إن لم يردّ الطرف الآخر خلال ٤٥ ثانية ننهي المكالمة بدل الانتظار للأبد
+  useEffect(() => {
+    if (peer) return undefined;
+    const t = setTimeout(() => { toast(`${peerName} لم يرد.`); onLeave(); }, 45000);
+    return () => clearTimeout(t);
+  }, [!!peer]); // eslint-disable-line
+
   if (m.status === 'failed') return <Failed onLeave={onLeave} code={m.fatal} />;
 
   return (

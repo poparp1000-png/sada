@@ -241,7 +241,12 @@ export function useMeeting({ roomURL, token, name, isHost = false, autoStart = {
       document.removeEventListener('pointerdown', unlock);
       audioEls.current.forEach((el) => el.remove());
       audioEls.current.clear();
-      meeting.leaveMeeting().catch(() => {});
+      // نوقف المسارات صراحةً قبل المغادرة كي تنطفئ أيقونة الميكروفون في أندرويد
+      (async () => {
+        try { await meeting.stopVideo?.(); } catch { /* لم تبدأ */ }
+        try { await meeting.stopAudio?.(); } catch { /* لم تبدأ */ }
+        try { await meeting.leaveMeeting(); } catch { /* غادر بالفعل */ }
+      })();
       mRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
